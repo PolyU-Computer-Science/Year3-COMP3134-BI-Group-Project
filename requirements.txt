@@ -1,0 +1,9 @@
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+# Optional for interactive plots
+plotly
+# Optional for association rule mining
+mlxtend
