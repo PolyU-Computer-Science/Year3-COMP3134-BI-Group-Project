@@ -69,7 +69,53 @@ Adjust after reviewing actual profile numbers.
 | Memory issues | Large dataset | Sample or chunk read |
 
 ## Team Information
-Add group number and member student IDs here for submission.
+Fill in your group's details below before submission. Replace the placeholders with real names/IDs and update presenter assignments.
+
+- Group number: Group 6
+- Course: COMP3134 BI & CRM
+- Semester: [e.g., 2025/26 Semester 1]
+- GitHub repository: https://github.com/PolyU-Computer-Science/Year3-COMP3134-BI-Group-Project
+
+- Members (example template):
+	- Student A (A1234567) — Role: Notebook & Data ETL, Contact: youremail@domain.edu
+	- Student B (B2345678) — Role: EDA & Visuals, Contact: youremail@domain.edu
+	- Student C (C3456789) — Role: Modeling & Clustering, Contact: youremail@domain.edu
+	- Student D (D4567890) — Role: Presentation & Report, Contact: youremail@domain.edu
+
+- Presenter allocation (4-minute presentation):
+	- Speaker 1: 0:00–1:30 — Project overview & data
+	- Speaker 2: 1:30–2:30 — Methods & modeling results
+	- Speaker 3: 2:30–3:30 — Insights & marketing tactics
+	- Speaker 4: 3:30–4:00 — Conclusion & Q&A handling
+
+Make sure to replace placeholders with actual names, student IDs and contact emails before final submission.
+
+## Personas (generated from notebook `Group_6.ipynb`)
+The notebook generates a `personas_table.csv` (in `output/`) summarising each cluster into a concise persona and recommended tactics. Below are the persona templates and how to interpret them.
+
+- High-Value (Recent)
+	- Traits: above-median Monetary, low Recency (recent purchasers). Likely loyal, high spenders.
+	- Acquisition tactic: Not primary — focus on referrals, selective lookalike campaigns to recruit similar customers.
+	- Retention tactic: VIP program, early access to new products, personalized premium promotions, exclusive bundles.
+	- Suggested KPIs: Average order value, retention rate, CLTV uplift.
+
+- Frequent Low-Value
+	- Traits: above-median Frequency but below-median Monetary. Many small purchases or low basket size.
+	- Acquisition tactic: Cross-sell bundles and targeted upsell offers (e.g., 10% off when adding accessories).
+	- Retention tactic: Loyalty points for hitting spending thresholds, promotions that increase basket size (bundle discounts).
+	- Suggested KPIs: Average items per order, basket value, conversion on upsell offers.
+
+- Low-Value / Dormant
+	- Traits: low Frequency, low Monetary, high Recency (haven't bought recently).
+	- Acquisition tactic: Welcome / reacquisition offers — time-limited discounts, curated welcome bundles using top cross-sell categories (use association rules for combinations).
+	- Retention tactic: Re-engagement emails/SMS with personalized recommendations and coupon reminders; win-back campaigns.
+	- Suggested KPIs: Reactivation rate, conversion rate of win-back offers, cost-per-acquisition for reactivated users.
+
+Notes on persona interpretation:
+- The persona labels are heuristic and based on cluster-level medians (Monetary, Frequency, Recency). Review `cluster_profile.csv` and `cluster_profile_enhanced.csv` to adjust labels or thresholds for your report.
+- Use `assoc_rules_top.csv` (if generated) to pick concrete product combinations to show in slide examples for cross-sell bundles.
+
+If you want, I can populate the Members list with your real names and student IDs once you provide them.
 
 ## License / Academic Integrity
 This work is for academic purposes only. Ensure compliance with course guidelines.
