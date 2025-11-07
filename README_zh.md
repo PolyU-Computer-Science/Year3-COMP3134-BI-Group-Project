@@ -27,6 +27,27 @@ pip install mlxtend
 2. 打開並自上而下運行 `Group_6.ipynb`（建議 Restart & Run All）。
 3. 結果文件（如 `rfm_clusters.csv`、`cluster_profile.csv`）將在分析末端自動生成。
 
+### 已安裝套件（核心片段）——由當前環境生成
+下面展示開發與測試 Notebook 時使用環境中的核心套件片段（僅包含 Notebook 使用的主要套件）。您可以使用文後命令在本機重新生成相同片段。
+
+```
+matplotlib==3.9.2
+mlxtend==0.23.4
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.1
+seaborn @ file:///... (請以 `pip freeze` 結果為準)
+```
+
+在 Windows PowerShell 中重新生成該片段的命令：
+
+```powershell
+pip freeze | findstr /R "pandas numpy scikit-learn matplotlib seaborn python-pptx mlxtend" > requirements_core.txt
+cat requirements_core.txt
+```
+
+若要鎖定精確版本以利重現，請將 `requirements_core.txt` 中的行複製至 `requirements.txt`，然後在乾淨的虛擬環境中運行 `pip install -r requirements.txt`。
+
 ## 數據處理流程
 | 階段 | 主要操作 |
 |------|----------|
@@ -60,6 +81,49 @@ pip install mlxtend
 - 關聯規則（Apriori/FP-Growth）挖掘商品組合
 - 時序預測（月營收）可用 SARIMA 或 Prophet
 - 分類模型預測未來高價值客戶
+
+## 清理決策（紀錄）
+以下列出 `Group_6.ipynb` 中實際套用的資料清理與回退規則，便於審閱者重現或按需調整。
+
+- 缺少 `LineAmount` / 價格缺失：當 `LineAmount` 或 `Price` 欄位缺失時，Notebook 以每筆明細 `1.0` 為替代值，確保發票彙總可成功執行。程式碼參考：`merged['LineAmount'] = 1.0`。
+
+- `ProductList`（多商品）拆分：若交易列含以逗號分隔的商品清單（欄名 `Product id list`），先以 `str.split(',')` 拆分，再使用 `explode()` 展開為多列，並用 `str.strip()` 去除空白；展開後與 `products` 表依商品 id 合併以取得商品屬性。
+
+- 發票總額 (`InvoiceAmount`) 缺失：若原資料沒有 `InvoiceAmount`，會以 `LineAmount` 按 `Invoice no` 做 group sum 重新計算並回填，確保每張發票有一致的總額。
+
+- 行為特徵缺值填補（如 `AvgInterpurchaseDays`、`MallDiversity`、`PaymentDiversity`、`CategoryConcentration`）：以該特徵在客戶間的中位數填補（保守策略）。程式碼參考：`rfm_enhanced[c] = rfm_enhanced[c].fillna(rfm_enhanced[c].median())`。
+
+- 離群值處理與轉換：
+	- 對金額類特徵採用 `log1p` 轉換（例如 `MonetaryLog = np.log1p(Monetary)` 與 `AvgInvoiceLog = np.log1p(AvgInvoice)`）來降低偏態影響，而非直接截斷。
+	- 若偏好使用截斷，可在 log 前對金額做 99 百分位上限截斷，例如：`cap = df['Monetary'].quantile(0.99); df['Monetary'] = df['Monetary'].clip(upper=cap)`。
+
+- 日期解析：`Invoice date` 使用 `format='%d/%m/%Y'` 並設 `errors='coerce'`，格式錯誤的日期會成為 `NaT`，建議在計算 RFM 前檢查是否有 `NaT` 並做人工處理或排除。
+
+以上規則旨在採用保守處理（中位數填補、log1p 轉換），若您的資料有大量缺值或極端值，請在 Notebook 中說明改動並重新執行分析。
+
+---
+
+## 在乾淨環境中運行 Notebook（推薦命令）
+以下為在 Windows PowerShell 下建立虛擬環境、安裝相依套件並以 `nbconvert` 非互動方式執行 Notebook 的建議指令。若執行時間過長或資料量較大，請調整 timeout。
+
+```powershell
+# 建立並啟用虛擬環境（PowerShell）
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# 更新 pip 並安裝需求
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+# 執行 Notebook（自上而下）。必要時增加 --ExecutePreprocessor.timeout 的秒數。
+jupyter nbconvert --to notebook --execute Group_6.ipynb --output executed_Group_6.ipynb --ExecutePreprocessor.timeout=600
+```
+
+預期執行時間與記憶體需求（近似值）：
+- 以此次開發用的小型資料（數千筆交易）為例：在一般筆電（4 核、8 GB RAM）上約需 1–5 分鐘；峰值記憶體通常低於 2–4 GB。
+- 若資料量上升到數萬或數十萬筆，執行時間可能擴展為 10–30+ 分鐘，且記憶體需求可能超過 8 GB。此時建議增加機器記憶體或採分批/取樣方式執行。
+
+若 `nbconvert` 在某步驟逾時（timeout），建議以互動方式在 Jupyter 中增大 timeout 或逐段執行（Restart & Run All）。
 
 ## 常見問題排查
 | 問題 | 原因 | 解決方法 |
