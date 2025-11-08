@@ -1,0 +1,3 @@
+cluster,customers,avg_recency,avg_frequency,avg_monetary,annualized_spend,persona_label,acquisition_tactic,retention_tactic
+0,753,111.64940239043824,4.602921646746348,16464.067463479416,8220.772399685344,High-Value (VIP),Referral / look-alike ads,Exclusive early access + premium service
+1,396,305.1287878787879,2.227272727272727,5132.999267676768,2562.98869042684,Dormant / At-risk,Win-back coupons,Timelimited discount + personalized recs
