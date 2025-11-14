@@ -1,0 +1,31 @@
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments & build artifacts
+.venv/
+.env/
+venv/
+.env.local
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# Notebook outputs & models
+output/
+output/**
+
+# IDE / editor settings
+.vscode/
+.idea/
+
+# Logs & temp files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
