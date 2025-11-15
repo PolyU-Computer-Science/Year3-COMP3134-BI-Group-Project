@@ -1,171 +1,115 @@
 # COMP3134 BI & CRM Project – Group 6
 
-## Project Structure
+This README is a flow guide for `Group_6.ipynb`: every step, what the code does, and the files generated. 
 
-- `Group_6.ipynb`: Main analysis notebook (data loading → validation → transformation → EDA → feature engineering → modeling → insights → export)
-- `data/`: Contains the three source CSVs `sales_6.csv`, `customers_6.csv`, `products_6.csv`
-- `output/csv/`: Notebook exports, including `merged_data.csv`, `cluster_profile.csv`, `customers_with_cluster.csv`, `customers_with_cluster_enriched.csv`, `cluster_top_categories.csv`, `top_categories_per_persona.csv`, `boundary_customers.csv`, `personas_table.csv`, `high_value_customers.csv`, and `association_rules.csv`
-- `output/image/`: Saved charts (mall/category sales, payment mix, invoice distribution, seasonality, cluster PCA plot, persona plots, etc.)
-- `output/model/`: Serialized `kmeans_model.joblib`, `scaler.joblib`, `pca.joblib`
+## Environment Setup (retained)
 
-## Environment Setup
+- Python ≥ 3.9
+- Install dependencies (PowerShell):
+  ```powershell
+  pip install -r requirements.txt
+  ```
+- Core package versions used during development:
+  ```
+  matplotlib==3.9.2
+  mlxtend==0.23.4
+  numpy==1.26.4
+  pandas==2.2.2
+  scikit-learn==1.5.1
+  seaborn==0.13.2
+  ```
 
-### Recommended Versions
+## Notebook Flow (Step-by-step)
 
-- Python >= 3.9
+1. **Setup paths & style**
 
-### Install Dependencies
+- Ensure `data/`, `output/csv`, `output/image`, and `output/model` exist (`Path(...).mkdir(exist_ok=True)`).
+- Apply consistent visualization defaults via `sns.set(style='whitegrid')` so every chart looks uniform.
 
-Using pip (Windows PowerShell):
+2. **Load raw CSVs**
 
-```powershell
-pip install -r requirements.txt
-```
+- Read `sales_6.csv`, `customers_6.csv`, `products_6.csv` with `pd.read_csv`.
+- Print shapes and `display(... .head())` to verify columns before transformation.
 
-`requirements.txt` already includes every package needed by the notebook (NumPy/Pandas/Matplotlib/Seaborn/Scikit-learn/mlxtend). No optional installs are required.
+3. **Data validation**
 
-## Reproducibility Steps
+- Count missing values (`df.isna().sum()`), validate IDs with regex (e.g., `str.match(r'^INV\d{5}$')`).
+- Parse invoice dates using `pd.to_datetime(..., errors='coerce')` and inspect unique categorical levels.
 
-1. Place all three source CSV files in the same folder as the notebook.
-2. Open and run `Group_6.ipynb` top to bottom (Restart & Run All recommended).
-3. Outputs (see the `output/csv/` list above) will be refreshed near the end.
+4. **Product explode & merge**
 
-### Installed packages (core) — generated from current environment
+- Split `Product id list` on commas, strip whitespace, `explode` into line items.
+- Merge with product and customer tables, then save the enriched detail as `output/csv/merged_data.csv`.
 
-Below is a small fragment of the packages currently installed in the environment used to develop and run the notebook (only core packages used by the notebook). You can regenerate this fragment on your machine with the command shown after the block.
+5. **Exploratory analysis**
 
-```
-matplotlib==3.9.2
-mlxtend==0.23.4
-numpy==1.26.4
-pandas==2.2.2
-scikit-learn==1.5.1
-seaborn==0.13.2
-```
+- Build mall/category revenue bars, payment-method distribution, invoice histogram, age-by-gender boxplot, and monthly trend line.
+- Export every Matplotlib/Seaborn figure to `output/image/` for direct slide use.
 
-To regenerate the same snippet on Windows PowerShell (recommended), run:
+6. **RFM calculation**
 
-```powershell
-pip freeze | findstr /R "pandas numpy scikit-learn matplotlib seaborn mlxtend" > requirements_core.txt
-cat requirements_core.txt
-```
+- Aggregate per customer to get Monetary, Frequency, and most recent purchase date.
+- Compute Recency from `snapshot_date`, apply `np.log1p` to Monetary, and assign 1–5 quantile scores via `pd.qcut`.
 
-If you want to pin exact versions for reproducibility, copy the lines from `requirements_core.txt` into `requirements.txt` (or append them), then run `pip install -r requirements.txt` in a clean venv.
+7. **KMeans clustering**
 
-## Data Processing Overview
+- Scale R, F, and log Monetary with `RobustScaler`, sweep k=2..8, pick the highest silhouette, and fit `KMeans(n_clusters=best_k, n_init=20)`.
+- Output `cluster_profile.csv`, `customers_with_cluster.csv`, PCA visuals, and persist scaler/PCA/model under `output/model/`.
 
-| Phase               | Key Actions                                                                 |
-| ------------------- | --------------------------------------------------------------------------- |
-| Validation          | Missing-value scan, ID format regex checks, invoice-date parsing            |
-| Transformation      | Split comma-separated product lists, trim IDs, explode to line level, join product & customer tables |
-| Feature Engineering | Compute RFM metrics (Recency, Frequency, Monetary + log transform)          |
-| EDA                 | Mall/category revenue, payment mix, invoice distributions, demographics, seasonality |
-| Modeling            | KMeans on robust-scaled RFM features, silhouette-based k selection, PCA viz |
-| Persona & Rules     | Map clusters to personas + tactics, perform Apriori association rules       |
-| Export              | Persist merged data, cluster assignments, persona summaries, association rules, and model artifacts |
+8. **Cluster diagnostics**
 
-## Modeling Details
+- Plot z-scored R/F/M means per cluster to highlight behavioral differences.
+- Measure distances in PCA space to flag near-boundary customers and export `output/csv/boundary_customers.csv`.
 
-- Scaling: `RobustScaler` (reduces influence of monetary outliers)
-- Algorithm: `KMeans` (`n_init=20` for stability)
-- k selection: silhouette score across range 2–8 (best k picked automatically)
-- Profiling: mean feature values per cluster
+9. **Persona & high-value view**
 
-## Interpreting Clusters (Example Template)
+- Merge clusters with demographics, compute annualized spend, label personas, and map acquisition/retention tactics.
+- Produce `personas_table.csv`, `customers_with_cluster_enriched.csv`, `high_value_customers.csv`, and top-category charts/CSVs per cluster.
 
-| Cluster | Traits                                     | Possible Strategy                          |
-| ------- | ------------------------------------------ | ------------------------------------------ |
-| 0       | High Monetary, Low Recency (recent buyers) | Early access / premium loyalty program     |
-| 1       | High Frequency, Moderate Monetary          | Bundle offers to lift order value          |
-| 2       | Low Frequency, Low Monetary                | Acquisition push: first-purchase incentive |
+10. **Association rules**
 
-Adjust after reviewing actual profile numbers.
+- Encode invoices into baskets with `TransactionEncoder`, run `apriori(min_support=0.01)`, derive rules with `association_rules(..., metric='confidence', min_threshold=0.3)`, filter by `lift > 1.2`, and save to `association_rules.csv`.
 
-## Marketing Strategy Draft
+11. **Deliverables recap**
 
-- Acquisition Tactic: Target low-frequency segment with welcome bundles combining top 2 cross-sell categories.
-- Retention Tactic: Offer tiered loyalty perks to high-Monetary cluster (exclusive previews, upsell electronics accessories).
+- Summarize artifact locations: all CSV exports in `output/csv/`, charts in `output/image/`, and serialized models in `output/model/` for presentation packaging.
 
-## Extending the Analysis
+### Directory quick reference
 
-- Association rules (Apriori/FP-Growth) for product bundling.
-- Time-series forecasting (monthly revenue) using SARIMA or Prophet.
-- Classification model predicting future high-value customers.
+- `data/`: raw CSV inputs (sales/customers/products).
+- `output/csv/`: merged data, cluster/persona exports, boundary list, association rules, etc.
+- `output/image/`: all Matplotlib/Seaborn figures saved during notebook run.
+- `output/model/`: `kmeans_model.joblib`, `scaler.joblib`, `pca.joblib`.
 
-## Cleaning decisions (documented)
+## Cleaning & Modeling Notes
 
-Concrete rules implemented in `Group_6.ipynb`:
+- **ID validation**: invoice/customer/product IDs must match `INV\d{5}`, `C\d{5}`, `P\d{5}`; mismatches flagged early.
+- **Date parsing**: `pd.to_datetime(..., format='%d/%m/%Y', errors='coerce')`; rows with `NaT` drop from recency calculations automatically.
+- **Product split**: `.str.split(',')` + `.apply(lambda lst: [pid.strip() for pid in lst])` ensures product IDs join cleanly to the master table.
+- **Monetary skew**: `np.log1p(Monetary)` plus `RobustScaler` stabilizes feature space before clustering.
+- **KMeans config**: `n_init=20`, silhouette-driven k (2–8). PCA plot stored as `customer_clusters_pca.png` for visual inspection.
 
-- ID validation: invoices, customers, and products must match `INV\d{5}`, `C\d{5}`, `P\d{5}`. Rows violating the pattern are flagged in the QA cell.
-- Date parsing: `Invoice date` is parsed with `format='%d/%m/%Y'` and `errors='coerce'`; rows with `NaT` dates are excluded automatically from Recency calculations.
-- Product list handling: comma-separated product IDs are split, whitespace-trimmed, and exploded before joining with the product master to avoid mismatched keys.
-- Monetary skew: `log1p` is applied to Monetary before clustering; no synthetic values are injected for missing prices (the provided dataset already contains price per product).
-- Scaling: `RobustScaler` is used so extreme spenders do not dominate cluster boundaries.
+## How to Re-run Everything
 
----
+1. Place `sales_6.csv`, `customers_6.csv`, `products_6.csv` inside `data/`.
+2. Install dependencies (see setup above).
+3. Run the notebook from start to finish (Jupyter “Restart & Run All” or CLI):
+   ```powershell
+   jupyter nbconvert --to notebook --execute Group_6.ipynb --output executed_Group_6.ipynb --ExecutePreprocessor.timeout=600
+   ```
+4. Confirm timestamps on files within `output/` to ensure they reflect your run; copy these into the submission package.
 
-## Run the notebook in a clean environment (recommended commands)
+## Troubleshooting Cheatsheet
 
-Below are recommended PowerShell commands to create a fresh virtual environment, install dependencies, and execute the notebook end-to-end non-interactively. Adjust timeout if your machine is slow or dataset is large.
+| Symptom                         | Cause                          | Fix                                                                 |
+| ------------------------------- | ------------------------------ | ------------------------------------------------------------------- |
+| All parsed dates become `NaT` | CSV not in `DD/MM/YYYY`      | Adjust `format` argument or convert before reading                |
+| Silhouette very low             | Inadequate k / missing signals | Extend k range or add behavior features (e.g., average basket size) |
+| Association rules empty         | Thresholds too strict          | Lower `min_support` or `confidence` and rerun                   |
+| Notebook crashes from memory    | Dataset >> sample provided     | Chunk the sales file or sample invoices for prototype runs          |
 
-```powershell
-# Create & activate venv (PowerShell)
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+## Personas & Strategy Use
 
-# Upgrade pip and install dependencies
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-
-# Execute the notebook (run top-to-bottom). Increase --ExecutePreprocessor.timeout seconds if required.
-jupyter nbconvert --to notebook --execute Group_6.ipynb --output executed_Group_6.ipynb --ExecutePreprocessor.timeout=600
-```
-
-Expected runtime & memory (approximate):
-
-- For the sample dataset used during development (a few thousand transactions): expect 1–5 minutes on a modern laptop (4 CPU cores, 8 GB RAM). Peak memory usage is typically under 2–4 GB.
-- If your dataset is much larger (tens or hundreds of thousands of transactions), runtime may increase to 10–30+ minutes and memory requirements may exceed 8 GB. In that case either increase memory or run the notebook in chunks / sample mode.
-
-If `nbconvert` times out on long-running steps, re-run interactively in Jupyter (Restart & Run All) or increase the `--ExecutePreprocessor.timeout` value.
-
-## Troubleshooting
-
-| Issue                             | Cause                  | Fix                                     |
-| --------------------------------- | ---------------------- | --------------------------------------- |
-| Date column all NaT               | Locale/format mismatch | Verify format `%d/%m/%Y`              |
-| Empty clusters or poor silhouette | k too high/low         | Rerun k selection range or add features |
-| Memory issues                     | Large dataset          | Sample or chunk read                    |
-
-## Personas (generated from notebook `Group_6.ipynb`)
-
-The notebook generates a `personas_table.csv` (in `output/`) summarising each cluster into a concise persona and recommended tactics. Below are the persona templates and how to interpret them.
-
-- High-Value (Recent)
-
-  - Traits: above-median Monetary, low Recency (recent purchasers). Likely loyal, high spenders.
-  - Acquisition tactic: Not primary — focus on referrals, selective lookalike campaigns to recruit similar customers.
-  - Retention tactic: VIP program, early access to new products, personalized premium promotions, exclusive bundles.
-  - Suggested KPIs: Average order value, retention rate, CLTV uplift.
-- Frequent Low-Value
-
-  - Traits: above-median Frequency but below-median Monetary. Many small purchases or low basket size.
-  - Acquisition tactic: Cross-sell bundles and targeted upsell offers (e.g., 10% off when adding accessories).
-  - Retention tactic: Loyalty points for hitting spending thresholds, promotions that increase basket size (bundle discounts).
-  - Suggested KPIs: Average items per order, basket value, conversion on upsell offers.
-- Low-Value / Dormant
-
-  - Traits: low Frequency, low Monetary, high Recency (haven't bought recently).
-  - Acquisition tactic: Welcome / reacquisition offers — time-limited discounts, curated welcome bundles using top cross-sell categories (use association rules for combinations).
-  - Retention tactic: Re-engagement emails/SMS with personalized recommendations and coupon reminders; win-back campaigns.
-  - Suggested KPIs: Reactivation rate, conversion rate of win-back offers, cost-per-acquisition for reactivated users.
-
-Notes on persona interpretation:
-
-- The persona labels are heuristic and based on cluster-level medians (Monetary, Frequency, Recency). Review `cluster_profile.csv` to adjust labels or thresholds for your report.
-- Use `association_rules.csv` to pick concrete product combinations to show in slide examples for cross-sell bundles.
-
-If you want, I can populate the Members list with your real names and student IDs once you provide them.
-
-## License / Academic Integrity
-
-This work is for academic purposes only. Ensure compliance with course guidelines.
+- `personas_table.csv` + persona visualizations feed the “Target segment / positioning / value prop” slide.
+- `top_categories_per_persona.csv` + `association_rules.csv` provide concrete acquisition/retention tactics (bundle ideas, coupon targets).
+- `high_value_customers.csv` highlights VIP IDs for loyalty proposals.
