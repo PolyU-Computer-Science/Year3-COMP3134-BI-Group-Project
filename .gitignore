@@ -17,8 +17,8 @@ dist/
 build/
 
 # Notebook outputs & models
-output/
-output/**
+# output/
+# output/**
 
 # IDE / editor settings
 .vscode/
