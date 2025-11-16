@@ -116,6 +116,5 @@ All visuals are saved to `output/image/` for direct slide use:
   ```powershell
   jupyter nbconvert --to notebook --execute Group_6.ipynb --output executed_Group_6.ipynb --ExecutePreprocessor.timeout=600
   ```
-
-  or open the notebook in JupyterLab/VS Code and use "Restart & Run All".
-- **Validate outputs**: reruns should refresh `output/csv/merged_data.csv` and overwrite the eight PNG files listed above. If the files do not update, check that the script has permission to write to the OneDrive directory.
+  or open the notebook in **JupyterLab/VS Code** and use "Restart & Run All".
+- **Validate outputs**: reruns should refresh `output/csv/merged_data.csv` and overwrite the eight PNG files listed above. If the files do not update, check that the script has permission to write to the directory.
