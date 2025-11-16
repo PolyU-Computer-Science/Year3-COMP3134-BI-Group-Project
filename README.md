@@ -8,7 +8,9 @@ This README reflects the current scope of `Group_6.ipynb`. The notebook focuses 
 
 ## 1. Project Overview
 
-**Business Scenario**RetailX operates several shopping malls. It wants to consolidate invoice, customer, and product data so that BI analysts can:
+**Business Scenario**
+
+RetailX operates several shopping malls. It wants to consolidate invoice, customer, and product data so that BI analysts can:
 
 - Spot behaviour patterns across malls, product categories, and payment channels
 - Quantify customer value using Recency–Frequency–Monetary metrics
