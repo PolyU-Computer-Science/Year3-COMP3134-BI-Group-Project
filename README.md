@@ -119,21 +119,3 @@ All visuals are saved to `output/image/` for direct slide use:
 
   or open the notebook in JupyterLab/VS Code and use "Restart & Run All".
 - **Validate outputs**: reruns should refresh `output/csv/merged_data.csv` and overwrite the eight PNG files listed above. If the files do not update, check that the script has permission to write to the OneDrive directory.
-
----
-
-## 6. Key Notes & Troubleshooting
-
-| Issue                                  | Likely Cause                                    | Suggested Fix                                                                                    |
-| -------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Dates become `NaT`                   | Source file not in `DD/MM/YYYY`               | Update the `format` argument or pre-convert the column before loading.                         |
-| Missing `output/csv/merged_data.csv` | Product list explode failed (e.g., null string) | Ensure `Product id list` is non-null; apply `.fillna('')` before splitting if necessary.     |
-| Silhouette scores all low (<0.2)       | Features not scaled or too few transactions     | Confirm `RobustScaler` ran and consider trimming outliers before clustering.                   |
-| PNGs not saved                         | `output/image/` removed or read-only          | Recreate the folder (`Path(...).mkdir(parents=True, exist_ok=True)`) and rerun plotting cells. |
-
----
-
-## 7. Scope Boundaries
-
-- The current notebook stops after RFM-based clustering. Persona write-ups, association rules, and additional CSV/model artifacts that appeared in older documentation are intentionally omitted until corresponding code exists.
-- Any future features (e.g., Apriori mining or persona export) should update this README again so the listed deliverables always match the notebook outputs.
