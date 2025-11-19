@@ -52,7 +52,7 @@ Group Project/Jupyter/
   ```
 
   or open the notebook in **JupyterLab/VS Code** and use "Restart & Run All".
-- **Validate outputs**: reruns should refresh `output/csv/merged_data.csv` and overwrite the eight PNG files listed above. If the files do not update, check that the script has permission to write to the directory.
+- **Validate outputs**: reruns should refresh `output/csv/merged_data.csv` and overwrite the twelve PNG files listed above. If the files do not update, check that the script has permission to write to the directory.
 
 ---
 
